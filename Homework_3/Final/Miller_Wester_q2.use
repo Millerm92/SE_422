@@ -1,0 +1,244 @@
+--Homework 3 part 2
+
+model FPS
+
+class Player
+ attributes
+   name:String
+   health:Integer init = 500
+   distanceTravelled:Integer init = 0
+   weapon:Weapon
+   numEnemies:Integer init = 0
+   
+   currentState:PlayerState
+   neutralState:PlayerState
+   attackState:PlayerState
+   panicState:PlayerState
+   dieState:PlayerState
+   
+  operations
+  initialize()
+  begin
+   for e in self.Enemy do
+    self.numEnemies := self.numEnemies + 1;
+   end
+  end
+  
+  changeWeapon(w:Weapon)
+  begin
+   self.weapon := w;
+   insert(self, w) into playerWeapon;
+  end
+  
+   takeDamage(d:Integer)
+   begin
+    self.health := self.health - d;
+	if self.health < 250 then
+     if self.health <= 0 then
+      self.currentState := self.dieState;
+	 else
+	  self.currentState := self.panicState;
+	 end
+	end
+   end
+   
+   shoot(e:Enemy)
+   begin
+	self.currentState.shoot(e);
+   end
+ 
+   move()
+   begin
+    self.currentState.move();
+   end
+
+   die()
+   begin
+    self.currentState.die();
+   end
+
+   statemachines
+    psm STATEMACHINE
+     states 
+     startUp:initial
+	 neutral			
+	 panic			    
+	 attack		    	
+	 die				
+	
+    transitions
+	 startUp -> neutral  { create }
+
+	 neutral -> panic    { [self.health - d < 250] takeDamage() }
+	 neutral -> attack   { shoot()}
+	 neutral -> neutral  { [self.health - d >= 250] takeDamage() }
+	
+	 panic -> panic		{ [self.health - d > 0] takeDamage()} 
+	 panic -> die		{ [self.health - d <= 0] takeDamage() }
+	 panic -> attack	{  shoot()}
+
+	 attack -> die		{ [self.health - d <= 0] takeDamage()}
+	 attack -> panic	{ [self.health - d < 250 and self.health - d > 0] takeDamage() }
+	 attack -> attack	{ shoot()}
+	 attack -> attack	{ [self.health - d >= 250] takeDamage()}
+    end  
+end
+
+class PlayerState
+ attributes
+  player:Player
+
+ operations
+ shoot(e:Enemy)
+  begin
+   self.player.currentState := self.player.attackState;
+   e.takeDamage(self.player.weapon.damage);
+  end
+ 
+  move()
+  begin
+   self.player.distanceTravelled := self.player.distanceTravelled + 10;
+  end
+  
+  die()
+  begin
+  end
+  
+end
+
+class Neutral < PlayerState
+ operations
+  shoot(e:Enemy)
+  begin
+   self.player.currentState := self.player.attackState;
+   e.takeDamage(self.player.weapon.damage);
+  end
+ 
+  move()
+  begin
+   self.player.distanceTravelled := self.player.distanceTravelled + 10;
+  end
+
+  die()
+  begin
+  end
+  
+end
+
+class Attack < PlayerState
+ operations
+  shoot(e:Enemy)
+  begin
+   e.takeDamage(self.player.weapon.damage + 10);
+  end
+ 
+  move()
+  begin
+   self.player.distanceTravelled := self.player.distanceTravelled + 5;
+  end
+  
+  die()
+  begin
+  end
+  
+end
+
+class Panic < PlayerState
+ operations
+  shoot(e:Enemy)
+  begin
+   self.player.currentState := self.player.attackState;
+   e.takeDamage(self.player.weapon.damage - 10);
+  end
+ 
+  move()
+  begin
+   self.player.distanceTravelled := self.player.distanceTravelled + 15;
+  end
+  
+  die()
+  begin
+  end
+  
+end
+
+class Die < PlayerState
+ operations
+  shoot(e:Enemy)
+  begin
+  end
+ 
+  move()
+  begin
+  end
+
+  die()
+  begin
+  end
+  
+end
+
+class Weapon
+ attributes
+  name:String
+  damage:Integer
+end
+
+class Enemy
+ attributes
+  name:String
+  health:Integer init = 100
+  weapon:Weapon
+  flag:Integer init = 0;
+  
+  operations
+   shoot()
+   begin
+	self.thePlayer.takeDamage(self.weapon.damage);
+   end
+   
+   takeDamage(d:Integer)
+   begin
+    self.health := self.health - d;
+	if self.health <= 0 then
+	 self.die();
+	end
+   end
+   
+   die()
+   begin
+    if self.flag = 0 then
+     self.thePlayer.numEnemies := self.thePlayer.numEnemies - 1;
+	self.flag := 1;
+	end
+   end
+   
+end
+
+--ASSOCIATIONS
+association playerState between
+ Player[1] role thePlayer
+ PlayerState[1] role playerState
+end 
+
+association playerWeapon between
+ Player[1..*] role thePlayer
+ Weapon[1..*] role weapons
+end 
+
+association playerEnemies between
+ Player[1] role thePlayer
+ Enemy[1..*] role Enemy
+end
+
+association enemyWeapons between
+ Enemy[1..*] role theEnemy
+ Weapon[1] role weapon
+end
+
+
+
+
+
+
+

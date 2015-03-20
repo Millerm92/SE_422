@@ -1,0 +1,74 @@
+model MOF
+
+class ModelElement
+ attributes
+  name: String
+end
+
+class Classifier < ModelElement
+end
+
+class Feature < ModelElement
+end
+
+class Attribute < Feature
+end
+
+class AssociationEnd < Feature
+end
+
+class Operation < Feature
+end
+
+class Parameter
+end
+
+class Association
+end
+
+class Class < Classifier
+end
+
+class DataType < Classifier
+end
+
+class Interface < Classifier
+end
+
+composition features between
+ Classifier[1]
+ Feature[1..*] role features
+end
+
+association type between
+ Feature[0..*]
+ Classifier[1] role type
+end
+
+association genSpec between
+ Classifier[0..*] role generalization
+ Classifier[0..*] role specialization
+end
+
+association impleInter between
+ Interface[0..*] role implementedInterface
+ Class[0..*]
+end
+
+association ParaClass between
+ Parameter[0..*]
+ Classifier[1] role type 
+end
+
+association paraOper between
+ Parameter[0..*] role parameters
+ Operation[1]
+end
+
+association midCon between
+ Association[1]
+ AssociationEnd[2..*]
+end
+
+
+

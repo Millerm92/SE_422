@@ -1,0 +1,86 @@
+--Observer Pattern
+
+model ObserverPattern
+
+--CLASSES
+class AbstractObserver
+attributes
+ name:String
+ data:Real
+operations
+update(inData:Real)
+begin
+ self.data:=inData;
+end
+end
+
+class ConcreteObserver < AbstractObserver
+operations
+update(inData:Real)
+begin
+ self.data:=inData;
+end
+end
+
+class AbstractSubject
+attributes
+ name:String
+ data:Real 
+ numObs:Integer
+operations
+
+notify()
+begin
+end
+
+regObs(inObs:ConcreteObserver)
+begin
+end
+
+update(inData:Real)
+begin
+self.data:=inData;
+end
+end
+
+class ConcreteSubject < AbstractSubject
+operations
+notify()
+ begin
+  self.numObs:=self.obs1->size();
+   for obs in self.obs1 do
+    obs.update(self.data);
+  end
+end
+
+update(inData:Real)
+begin
+ self.data:=inData;
+end
+ 
+ regObs(inObs:ConcreteObserver)
+  begin
+   declare newObs:ConcreteObserver;
+   newObs:=inObs;
+   insert(self, newObs) into subject;
+   insert(newObs, self) into observers;
+  end
+end
+
+
+--ASSOCIATIONS
+association observers between
+ AbstractObserver[0..*] role obs1
+ AbstractSubject[0..*]
+end
+
+association subject between
+ ConcreteSubject[0..*] role sub1
+ ConcreteObserver[0..*]
+end
+
+--CONSTRAINTS
+context AbstractSubject
+ inv minData:data > 0
+ inv maxData:data < 10000
+  
